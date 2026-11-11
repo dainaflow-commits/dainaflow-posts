@@ -4,7 +4,7 @@ pela API oficial o que já chegou no horário. Roda no GitHub Actions.
 Nunca imprime chaves. A chave fica criptografada em automacao/token.enc
 (senha = segredo IG_APP_SECRET), gerada pelo workflow "Configurar chave".
 """
-import json, os, subprocess, sys, time, urllib.parse, urllib.request
+import hashlib, json, os, subprocess, sys, time, urllib.parse, urllib.request
 from datetime import datetime, timezone, timedelta
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
@@ -80,9 +80,12 @@ def configurar():
     mascarar(curto)
     if curto.startswith("IG"):
         # Login do Instagram: troca por chave de 60 dias (renovada sozinha depois)
-        r = http("GET", "https://graph.instagram.com/access_token?" + urllib.parse.urlencode(
-            {"grant_type": "ig_exchange_token", "client_secret": secret, "access_token": curto}))
-        longo = r["access_token"]; mascarar(longo)
+        try:  # chave curta -> 60 dias; a gerada no painel da Meta já vem longa
+            r = http("GET", "https://graph.instagram.com/access_token?" + urllib.parse.urlencode(
+                {"grant_type": "ig_exchange_token", "client_secret": secret, "access_token": curto}))
+            longo = r["access_token"]; mascarar(longo)
+        except RuntimeError:
+            longo = curto
         me = http("GET", f"https://graph.instagram.com/{VERSAO}/me?" + urllib.parse.urlencode(
             {"fields": "user_id,username", "access_token": longo}))
         cred = {"tipo": "instagram", "token": longo, "ig_id": str(me["user_id"]), "usuario": me.get("username"),
@@ -104,10 +107,13 @@ def configurar():
             if ig and (alvo is None or ig.get("username") == "daina_flow_"):
                 alvo = (p, ig)
         if not alvo:
-            sys.exit("Nenhuma página do Facebook com Instagram ligado foi encontrada para essa chave.")
+            n = len(pags.get("data", []))
+            sys.exit(f"Nenhuma página do Facebook com Instagram ligado foi encontrada ({n} página(s) visível(is) "
+                     "para essa chave). Gere a chave pelo login do Instagram (começa com IG).")
         p, ig = alvo
         cred = {"tipo": "facebook", "token": p["access_token"], "ig_id": ig["id"], "usuario": ig.get("username"),
                 "pagina": p.get("name"), "renovado_em": datetime.now(BR).isoformat()}
+    cred["origem"] = hashlib.sha256(curto.encode()).hexdigest()[:16]
     salvar_cred(cred)
     print(f"Chave configurada para @{cred.get('usuario')} ({cred['tipo']}).")
 
@@ -205,8 +211,10 @@ def rodar():
     if not pendentes:
         print("Nada para publicar agora.")
         return
-    if not os.path.exists(TOKEN_ENC) and os.environ.get("INSTAGRAM_TOKEN"):
-        configurar()  # primeira vez: troca a chave sozinha, sem botão
+    novo = os.environ.get("INSTAGRAM_TOKEN", "").strip()
+    if novo and (not os.path.exists(TOKEN_ENC) or
+                 ler_cred().get("origem") != hashlib.sha256(novo.encode()).hexdigest()[:16]):
+        configurar()  # primeira vez ou chave trocada no GitHub: configura sozinha
     cred = renovar_se_preciso(ler_cred())
     for quando, it in sorted(pendentes, key=lambda x: x[0]):
         if agora - quando > timedelta(hours=TOLERANCIA_H):
