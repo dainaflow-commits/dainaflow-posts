@@ -23,6 +23,8 @@ jobs:
       - name: Publicar o que chegou no horário
         env:
           IG_APP_SECRET: ${{ secrets.IG_APP_SECRET }}
+          IG_APP_ID: ${{ secrets.IG_APP_ID }}
+          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
         run: python automacao/publicar.py
       - name: Guardar o registro
         run: |

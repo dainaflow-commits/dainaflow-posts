@@ -205,6 +205,8 @@ def rodar():
     if not pendentes:
         print("Nada para publicar agora.")
         return
+    if not os.path.exists(TOKEN_ENC) and os.environ.get("INSTAGRAM_TOKEN"):
+        configurar()  # primeira vez: troca a chave sozinha, sem botão
     cred = renovar_se_preciso(ler_cred())
     for quando, it in sorted(pendentes, key=lambda x: x[0]):
         if agora - quando > timedelta(hours=TOLERANCIA_H):
