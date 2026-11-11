@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Daina Flow · Planejador</title>
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ciano:#00B7FF;--eletrico:#0077FF;--profundo:#003D99;--noite:#0F172A;--ambar:#F28C28;--energia:#FF6A00;
+  --gelo:#F3F7FF;--linha:#E2E9F6;--cinza:#5B6782;--bg:#F7F9FD;--card:#fff;--txt:#0F172A;--suave:#8A94AB;
+  --ok:#14A06B;--erro:#D9363E;--pausa:#8A94AB;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B1222;--card:#111A2E;--txt:#E8EEFA;--linha:#1F2A44;--gelo:#15203A;--cinza:#9AA6C2;--suave:#6E7A96}}
+:root[data-theme="dark"]{--bg:#0B1222;--card:#111A2E;--txt:#E8EEFA;--linha:#1F2A44;--gelo:#15203A;--cinza:#9AA6C2;--suave:#6E7A96}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Outfit,system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.top{display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid var(--linha);background:var(--card);position:sticky;top:0;z-index:5}
+.top img{height:30px}
+.top h1{font-family:"Instrument Serif",serif;font-weight:400;font-size:28px;letter-spacing:-.01em}
+.top h1 em{color:var(--ambar)}
+.top .sp{flex:1}
+.seg{display:flex;background:var(--gelo);border-radius:999px;padding:4px}
+.seg button{padding:7px 14px;border-radius:999px;font-size:14px;font-weight:500;color:var(--cinza)}
+.seg button.on{background:var(--card);color:var(--txt);box-shadow:0 1px 3px rgba(15,23,42,.12)}
+.wrap{max-width:1240px;margin:0 auto;padding:22px 24px 60px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--linha);border-radius:14px;padding:14px 16px}
+.kpi b{display:block;font-family:"Instrument Serif",serif;font-weight:400;font-size:38px;line-height:1}
+.kpi span{font-size:13px;color:var(--cinza)}
+.kpi.k1 b{color:var(--eletrico)}.kpi.k2 b{color:var(--ok)}.kpi.k3 b{color:var(--ambar)}.kpi.k4 b{color:var(--erro)}
+.nav{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.nav h2{font-family:"Instrument Serif",serif;font-weight:400;font-size:34px;text-transform:capitalize;flex:1}
+.nav h2 em{color:var(--suave)}
+.nb{width:38px;height:38px;border-radius:50%;border:1px solid var(--linha);background:var(--card);font-size:18px}
+.hoje{padding:8px 14px;border-radius:999px;border:1px solid var(--linha);background:var(--card);font-size:14px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--card);border:1px solid var(--linha);border-radius:16px;overflow:hidden}
+.dow{padding:10px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--suave);border-bottom:1px solid var(--linha);text-align:center}
+.day{min-height:128px;border-right:1px solid var(--linha);border-bottom:1px solid var(--linha);padding:8px;display:flex;flex-direction:column;gap:6px}
+.day:nth-child(7n){border-right:0}
+.day .n{font-size:13px;color:var(--cinza);font-weight:500}
+.day.fora{background:var(--gelo)}.day.fora .n{opacity:.45}
+.day.hj .n{background:var(--eletrico);color:#fff;border-radius:999px;width:26px;height:26px;display:grid;place-items:center}
+.pc{display:flex;gap:8px;align-items:center;border-radius:10px;padding:5px;background:var(--gelo);text-align:left;width:100%;border-left:3px solid var(--eletrico);transition:transform .12s}
+.pc:hover{transform:translateY(-1px)}
+.pc .th{width:34px;height:42px;border-radius:6px;background:#ccd center/cover;flex:none;position:relative;overflow:hidden}
+.pc .th video{width:100%;height:100%;object-fit:cover}
+.pc .i{min-width:0}
+.pc .h{font-size:12px;font-weight:600}
+.pc .t{font-size:11px;color:var(--cinza);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px}
+.pc.REEL{border-left-color:var(--ambar)}.pc.STORY{border-left-color:var(--ciano)}
+.pc.publicado{opacity:.75}.pc.erro{border-left-color:var(--erro)}.pc.pausado{opacity:.5;border-left-style:dashed}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--gelo);color:var(--cinza)}
+.badge i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.badge.agendado{color:var(--eletrico)}.badge.publicado{color:var(--ok)}.badge.erro{color:var(--erro)}.badge.pausado{color:var(--pausa)}.badge.pulado{color:var(--pausa)}
+.lista{display:flex;flex-direction:column;gap:10px}
+.li{display:grid;grid-template-columns:84px 1fr auto;gap:16px;align-items:center;background:var(--card);border:1px solid var(--linha);border-radius:14px;padding:12px;text-align:left;width:100%}
+.li .th{width:84px;height:105px;border-radius:10px;background:#ccd center/cover;overflow:hidden}
+.li .th video{width:100%;height:100%;object-fit:cover}
+.li .d{font-size:13px;color:var(--cinza);margin-bottom:4px}
+.li .tt{font-family:"Instrument Serif",serif;font-size:24px;line-height:1.1}
+.li .tp{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--suave);margin-top:6px}
+.vazio{padding:50px;text-align:center;color:var(--cinza);background:var(--card);border:1px dashed var(--linha);border-radius:16px}
+/* painel de prévia */
+.ov{position:fixed;inset:0;background:rgba(11,18,34,.55);display:none;z-index:20}
+.ov.on{display:block}
+.pn{position:fixed;top:0;right:0;bottom:0;width:min(860px,100%);background:var(--card);z-index:21;transform:translateX(100%);transition:transform .25s;display:grid;grid-template-columns:360px 1fr;overflow:auto}
+.pn.on{transform:none}
+.ph{background:var(--gelo);display:flex;align-items:center;justify-content:center;padding:28px}
+.phone{width:300px;background:#000;border-radius:38px;padding:10px;box-shadow:0 20px 50px rgba(15,23,42,.35)}
+.scr{background:#fff;border-radius:30px;overflow:hidden;color:#0F172A}
+.ig{display:flex;align-items:center;gap:8px;padding:10px 12px;font-size:12px;font-weight:600}
+.ig img{width:26px;height:26px;border-radius:50%;background:#fff;border:1px solid #eee;object-fit:contain;padding:2px}
+.mid{position:relative;aspect-ratio:4/5;background:#111;overflow:hidden}
+.mid.v{aspect-ratio:9/16}
+.mid img,.mid video{width:100%;height:100%;object-fit:cover;display:block}
+.arr{position:absolute;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.85);font-size:15px;color:#0F172A}
+.arr.l{left:8px}.arr.r{right:8px}
+.dots{display:flex;justify-content:center;gap:4px;padding:8px}
+.dots i{width:6px;height:6px;border-radius:50%;background:#cfd6e4}.dots i.on{background:var(--eletrico)}
+.cap{font-size:12px;line-height:1.45;padding:0 12px 14px;max-height:120px;overflow:hidden;white-space:pre-line}
+.inf{padding:28px 28px 40px}
+.inf .x{float:right;width:36px;height:36px;border-radius:50%;border:1px solid var(--linha);font-size:18px}
+.inf h3{font-family:"Instrument Serif",serif;font-weight:400;font-size:34px;line-height:1.05;margin:6px 0 12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--suave);margin:18px 0 6px}
+.txt{white-space:pre-line;font-size:14px;line-height:1.55;background:var(--gelo);border-radius:12px;padding:14px}
+.err{color:var(--erro);background:rgba(217,54,62,.08)}
+.foot{margin-top:24px;font-size:12px;color:var(--suave)}
+.carr{display:flex;align-items:center;justify-content:center;height:60vh;color:var(--cinza)}
+@media (max-width:860px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .pn{grid-template-columns:1fr}
+  .day{min-height:86px;padding:5px}
+  .pc .i{display:none}.pc{padding:3px;justify-content:center}
+  .top{padding:14px 16px}.wrap{padding:16px}
+  .top h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <img src="logo.png" alt="">
+  <h1>Planejador <em>Daina Flow</em></h1>
+  <div class="sp"></div>
+  <div class="seg"><button data-v="cal" class="on">Calendário</button><button data-v="lista">Lista</button></div>
+</header>
+<main class="wrap">
+  <section class="kpis" id="kpis"></section>
+  <div id="view"><div class="carr">Carregando a agenda…</div></div>
+  <p class="foot" id="foot"></p>
+</main>
+<div class="ov" id="ov"></div>
+<aside class="pn" id="pn"></aside>
+
+<script>
+const REPO="dainaflow-commits/dainaflow-posts";
+const RAW=`https://raw.githubusercontent.com/${REPO}/main/automacao/`;
+const TZ="America/Sao_Paulo";
+const TIPO={CARROSSEL:"Carrossel",IMAGEM:"Imagem",REEL:"Reel",STORY:"Story"};
+const ST={agendado:"Agendado",publicado:"Publicado",erro:"Erro",pausado:"Pausado",pulado:"Não publicado (atrasou)"};
+let posts=[],vis="cal",ref=new Date();ref.setDate(1);
+
+const fmtD=(d,o)=>d.toLocaleString("pt-BR",{timeZone:TZ,...o});
+const chave=d=>fmtD(d,{year:"numeric",month:"2-digit",day:"2-digit"});
+const hora=d=>fmtD(d,{hour:"2-digit",minute:"2-digit"});
+const isVid=u=>/\.(mp4|mov)(\?|$)/i.test(u);
+const titulo=p=>(p.legenda||"").split("\n").find(l=>l.trim())||(p.tipo==="STORY"?"Story":"Sem legenda");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function thumb(p){
+  const u=p.capa||p.midias[0];
+  return isVid(u)?`<video src="${esc(u)}#t=1" muted preload="metadata"></video>`:"";
+}
+function thumbStyle(p){const u=p.capa||p.midias[0];return isVid(u)?"":`style="background-image:url('${esc(u)}')"`}
+
+async function carregar(){
+  const t=Date.now();
+  const [a,f]=await Promise.all([
+    fetch(RAW+"agenda.json?t="+t).then(r=>r.json()),
+    fetch(RAW+"publicados.json?t="+t).then(r=>r.ok?r.json():{}).catch(()=>({}))
+  ]);
+  posts=a.map(p=>{
+    const r=f[p.id];let s=r?(r.status==="publicado"?"publicado":r.status==="erro"?"erro":"pulado"):(p.ativo?"agendado":"pausado");
+    return {...p,d:new Date(p.quando),st:s,reg:r||null};
+  }).sort((x,y)=>x.d-y.d);
+  render();
+  document.getElementById("foot").textContent="Atualizado às "+hora(new Date())+" · a agenda é lida do GitHub e a automação publica a cada 15 minutos.";
+}
+
+function kpis(){
+  const m=chave(ref).slice(3);
+  const doMes=posts.filter(p=>chave(p.d).slice(3)===m);
+  const c=s=>doMes.filter(p=>p.st===s).length;
+  document.getElementById("kpis").innerHTML=
+   `<div class="kpi k1"><b>${doMes.length}</b><span>no mês</span></div>
+    <div class="kpi k2"><b>${c("publicado")}</b><span>publicados</span></div>
+    <div class="kpi k3"><b>${c("agendado")}</b><span>agendados</span></div>
+    <div class="kpi k4"><b>${c("erro")}</b><span>com erro</span></div>`;
+}
+
+function render(){kpis();vis==="cal"?cal():lista()}
+
+function cal(){
+  const y=ref.getFullYear(),m=ref.getMonth();
+  const ini=new Date(y,m,1),off=(ini.getDay()+6)%7,start=new Date(y,m,1-off);
+  const hj=chave(new Date());
+  let h=`<div class="nav"><button class="nb" onclick="mes(-1)">‹</button><h2>${ref.toLocaleString("pt-BR",{month:"long"})} <em>${y}</em></h2><button class="hoje" onclick="mes(0)">Hoje</button><button class="nb" onclick="mes(1)">›</button></div><div class="cal">`;
+  ["seg","ter","qua","qui","sex","sáb","dom"].forEach(d=>h+=`<div class="dow">${d}</div>`);
+  for(let i=0;i<42;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);const k=chave(d);
+    const doDia=posts.filter(p=>chave(p.d)===k);
+    h+=`<div class="day ${d.getMonth()!==m?"fora":""} ${k===hj?"hj":""}"><span class="n">${d.getDate()}</span>`;
+    doDia.forEach(p=>{h+=`<button class="pc ${p.tipo} ${p.st}" onclick="abrir('${p.id}')"><span class="th" ${thumbStyle(p)}>${thumb(p)}</span><span class="i"><span class="h">${hora(p.d)} · ${TIPO[p.tipo]||p.tipo}</span><br><span class="t">${esc(titulo(p))}</span></span></button>`});
+    h+=`</div>`;
+  }
+  document.getElementById("view").innerHTML=h+"</div>";
+}
+
+function lista(){
+  const agora=new Date(Date.now()-864e5*3);
+  const ps=posts.filter(p=>p.d>=agora);
+  if(!ps.length){document.getElementById("view").innerHTML=`<div class="vazio">Nada agendado por aqui ainda.</div>`;return}
+  document.getElementById("view").innerHTML=`<div class="lista">`+ps.map(p=>`
+    <button class="li" onclick="abrir('${p.id}')"><span class="th" ${thumbStyle(p)}>${thumb(p)}</span>
+    <span><div class="d">${fmtD(p.d,{weekday:"long",day:"2-digit",month:"long"})} · ${hora(p.d)}</div><div class="tt">${esc(titulo(p))}</div><div class="tp">${TIPO[p.tipo]||p.tipo}${p.midias.length>1?" · "+p.midias.length+" imagens":""}</div></span>
+    <span class="badge ${p.st}"><i></i>${ST[p.st]}</span></button>`).join("")+`</div>`;
+}
+
+let idx=0,atual=null;
+function abrir(id){
+  atual=posts.find(p=>p.id===id);idx=0;painel();
+  document.getElementById("ov").classList.add("on");document.getElementById("pn").classList.add("on");
+}
+function fechar(){document.getElementById("ov").classList.remove("on");document.getElementById("pn").classList.remove("on")}
+function mover(n){idx=(idx+n+atual.midias.length)%atual.midias.length;painel()}
+function painel(){
+  const p=atual,u=p.midias[idx],v=isVid(u),story=p.tipo==="STORY",reel=p.tipo==="REEL";
+  const m=v?`<video src="${esc(u)}" ${p.capa?`poster="${esc(p.capa)}"`:""} controls playsinline></video>`:`<img src="${esc(u)}" alt="">`;
+  const nav=p.midias.length>1?`<button class="arr l" onclick="mover(-1)">‹</button><button class="arr r" onclick="mover(1)">›</button>`:"";
+  const dots=p.midias.length>1?`<div class="dots">${p.midias.map((_,i)=>`<i class="${i===idx?"on":""}"></i>`).join("")}</div>`:`<div style="height:8px"></div>`;
+  let reg="";
+  if(p.reg&&p.reg.status==="publicado")reg=`<div class="lbl">Publicado</div><div class="txt">${fmtD(new Date(p.reg.em),{dateStyle:"full",timeStyle:"short"})}</div>`;
+  if(p.reg&&p.reg.status==="erro")reg=`<div class="lbl">O que deu errado</div><div class="txt err">${esc(p.reg.erro||"")}</div>`;
+  document.getElementById("pn").innerHTML=`
+   <div class="ph"><div class="phone"><div class="scr">
+     <div class="ig"><img src="logo.png" alt="">daina_flow_</div>
+     <div class="mid ${story||reel?"v":""}">${m}${nav}</div>${dots}
+     ${story?"":`<div class="cap"><b>daina_flow_</b> ${esc(p.legenda||"")}</div>`}
+   </div></div></div>
+   <div class="inf"><button class="x" onclick="fechar()">×</button>
+     <span class="badge ${p.st}"><i></i>${ST[p.st]}</span>
+     <h3>${esc(titulo(p))}</h3>
+     <div class="row"><span class="badge">${TIPO[p.tipo]||p.tipo}</span><span class="badge">${fmtD(p.d,{weekday:"long",day:"2-digit",month:"long"})} · ${hora(p.d)}</span>${p.midias.length>1?`<span class="badge">${p.midias.length} mídias</span>`:""}</div>
+     ${reg}
+     ${p.legenda?`<div class="lbl">Legenda</div><div class="txt">${esc(p.legenda)}</div>`:""}
+   </div>`;
+}
+function mes(n){if(n===0){ref=new Date();ref.setDate(1)}else ref.setMonth(ref.getMonth()+n);render()}
+document.getElementById("ov").onclick=fechar;
+document.addEventListener("keydown",e=>{if(e.key==="Escape")fechar()});
+document.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".seg button").forEach(x=>x.classList.remove("on"));b.classList.add("on");vis=b.dataset.v;render()});
+carregar().catch(e=>{document.getElementById("view").innerHTML=`<div class="vazio">Não consegui ler a agenda agora. Tente recarregar a página.</div>`});
+setInterval(()=>carregar().catch(()=>{}),120000);
+</script>
+</body>
+</html>
