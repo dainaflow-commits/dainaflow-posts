@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "*/15 * * * *"   # a cada 15 minutos
   workflow_dispatch: {}       # botão "Run workflow" para rodar na hora
+  push:                       # roda na hora sempre que a agenda muda
+    branches: [main]
+    paths:
+      - "automacao/agenda.json"
+      - "automacao/publicar.py"
+      - ".github/workflows/publicar.yml"
 
 permissions:
   contents: write
