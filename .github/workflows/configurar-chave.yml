@@ -1,0 +1,30 @@
+name: Configurar chave do Instagram
+
+# Rode uma vez (Actions > Configurar chave do Instagram > Run workflow)
+# depois de salvar os segredos INSTAGRAM_TOKEN, IG_APP_ID e IG_APP_SECRET.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  configurar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Trocar pela chave definitiva e guardar criptografada
+        env:
+          INSTAGRAM_TOKEN: ${{ secrets.INSTAGRAM_TOKEN }}
+          IG_APP_ID: ${{ secrets.IG_APP_ID }}
+          IG_APP_SECRET: ${{ secrets.IG_APP_SECRET }}
+        run: python automacao/publicar.py configurar
+      - name: Salvar
+        run: |
+          git config user.name "daina-flow-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add automacao/token.enc
+          git diff --cached --quiet || (git commit -m "Chave do Instagram configurada (criptografada)" && git pull --rebase -q && git push)
