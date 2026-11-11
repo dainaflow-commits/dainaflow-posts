@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": "2026-11-11-teste-reel-automacao-on",
+    "ativo": true,
+    "quando": "2026-11-11T16:40:00-03:00",
+    "tipo": "REEL",
+    "midias": [
+      "https://raw.githubusercontent.com/dainaflow-commits/dainaflow-posts/main/instagram/reels/institucional/2026-11-10-automacao-on/reel.mp4"
+    ],
+    "capa": "https://raw.githubusercontent.com/dainaflow-commits/dainaflow-posts/main/instagram/reels/institucional/2026-11-10-automacao-on/capa.jpg",
+    "legenda": "Automação: ON.\n\nSe a sua equipe passa o dia respondendo \"qual o status do meu pedido?\", essa resposta pode sair sozinha.\n\nChega o e-mail, o fluxo busca o pedido na planilha e responde com o status e a previsão. Em segundos, com a informação certa.\n\nQuer isso funcionando na sua empresa? Toque no link da bio ou envie uma mensagem no direct.\n\nResposta automática · Excel · Power Automate · Atendimento\n\n#DainaFlow #PowerAutomate"
+  }
+]
