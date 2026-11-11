@@ -30,5 +30,6 @@ jobs:
         run: |
           git config user.name "daina-flow-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add automacao/publicados.json automacao/token.enc || true
+          git add automacao/publicados.json
+          [ -f automacao/token.enc ] && git add automacao/token.enc
           git diff --cached --quiet || (git commit -m "Registro de publicação" && git pull --rebase -q && git push)
